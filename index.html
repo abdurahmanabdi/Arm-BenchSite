@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>arm-bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hero wrap">
+  <div class="hero-row">
+    <div class="hero-text">
+      <a class="eyebrow-link" href="https://github.com/abdurahmanabdi/arm-bench">github.com/abdurahmanabdi/arm-bench</a>
+      <h1>arm-bench</h1>
+      <p class="lede">A MuJoCo manipulation benchmark built on a perceive, decide, act loop: render a frame, read the telemetry, choose the next move, execute, repeat &mdash; across pick-and-place, stacking, and dual-slot loading.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="https://github.com/abdurahmanabdi/arm-bench">View on GitHub</a>
+        <a class="btn" href="#task-2">Read the failure analysis</a>
+      </div>
+    </div>
+    <div class="hero-diagram">
+      <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+        <rect x="40" y="170" width="60" height="16" rx="2" fill="none" stroke="var(--line)" stroke-width="2"/>
+        <circle cx="70" cy="170" r="5" fill="var(--ink)"/>
+        <line x1="70" y1="170" x2="70" y2="120" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="70" cy="120" r="4" fill="var(--ink)"/>
+        <line x1="70" y1="120" x2="130" y2="90" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="130" cy="90" r="4" fill="var(--ink)"/>
+        <line x1="130" y1="90" x2="160" y2="50" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="160" cy="50" r="4" fill="var(--ink)"/>
+        <line x1="160" y1="50" x2="150" y2="34" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="150" y1="34" x2="140" y2="46" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+        <rect x="108" y="150" width="16" height="16" fill="none" stroke="var(--ok)" stroke-width="2"/>
+        <rect x="150" y="150" width="16" height="16" fill="none" stroke="var(--alert)" stroke-width="2"/>
+        <rect x="100" y="188" width="24" height="4" fill="none" stroke="var(--ink-muted)" stroke-width="1"/>
+        <rect x="142" y="188" width="24" height="4" fill="none" stroke="var(--ink-muted)" stroke-width="1"/>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<section class="wrap-wide">
+  <h2>Three tasks, increasing difficulty</h2>
+  <p class="section-sub">Same controller setup throughout: look at a rendered frame plus object and gripper telemetry, decide the next move, execute, look again.</p>
+  <div class="status-panel">
+    <img src="summary_3tasks.png" alt="Contact sheet summarizing the outcome of all three tasks">
+    <p class="status-caption">Task 1 (pick-and-place) and task 3 (dual-slot loading) both succeeded on the recorded run. Task 2 (stacking) is the open failure below.</p>
+  </div>
+  <div class="task-list">
+    <div class="task-row">
+      <span class="task-num">01</span>
+      <span class="task-name">Pick-and-place</span>
+      <span class="task-result ok">Success</span>
+    </div>
+    <div class="task-row">
+      <span class="task-num">02</span>
+      <span class="task-name">Stack cube B on cube A</span>
+      <span class="task-result alert">Open failure</span>
+    </div>
+    <div class="task-row">
+      <span class="task-num">03</span>
+      <span class="task-name">Dual-slot loading</span>
+      <span class="task-result ok">Success</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="task-2">
+  <h2>What went wrong in task 2</h2>
+  <p class="section-sub">Two distinct failures, documented in the project's field report rather than smoothed over.</p>
+
+  <p><strong>The fling.</strong> Cube A was transported in a single large IK move. The grip was firm but not maximal, and the resulting swing was fast enough that the cube came free mid-flight and landed 1.2 meters away &mdash; outside the arm's reach for good. Fixed by breaking transport into a lift, capped-step translate, and descend sequence, instead of trusting a single long jump.</p>
+
+  <p><strong>Death by a thousand nudges.</strong> Cube A was placed cleanly. While aligning cube B above it for the stack, the gripper's fingertips &mdash; which extend about 3cm past the point the code was tracking &mdash; clipped cube A on each descent. Four small, individually-plausible nudges in the same direction accumulated until the cube was knocked off the table. No single correction was the mistake; the mistake was treating each nudge as independent instead of noticing the trend.</p>
+
+  <figure class="figure">
+    <img src="contact_sheet_task2_rerun.png" alt="Contact sheet of the rerun: cube A placed cleanly, then progressively nudged off-table while aligning cube B above it">
+    <figcaption>Rerun after fixing the fling: transport succeeds, but the stacking approach still disturbs cube A step by step until the cumulative drift spikes.</figcaption>
+  </figure>
+
+  <div class="chart-wrap">
+    <svg viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="182.7" x2="600" y2="182.7" stroke="var(--alert)" stroke-width="1" stroke-dasharray="3 4" opacity="0.7"/>
+      <line x1="40" y1="191.7" x2="600" y2="191.7" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 4" opacity="0.7"/>
+      <line x1="40" y1="20" x2="40" y2="200" stroke="var(--line)" stroke-width="1"/>
+      <line x1="40" y1="200" x2="600" y2="200" stroke="var(--line)" stroke-width="1"/>
+      <polyline points="40,200 180,194.9 320,194.9 460,184.2 600,32.7" fill="none" stroke="var(--ink-muted)" stroke-width="2"/>
+      <circle cx="40" cy="200" r="4" fill="var(--ink-muted)"/>
+      <circle cx="180" cy="194.9" r="4" fill="var(--ink-muted)"/>
+      <circle cx="320" cy="194.9" r="4" fill="var(--ink-muted)"/>
+      <circle cx="460" cy="184.2" r="5" fill="var(--warn)"/>
+      <circle cx="600" cy="32.7" r="5" fill="var(--alert)"/>
+      <text x="460" y="170" font-family="IBM Plex Mono" font-size="11" fill="var(--warn)" text-anchor="middle">new warning fires</text>
+      <text x="560" y="24" font-family="IBM Plex Mono" font-size="11" fill="var(--alert)" text-anchor="end">old alert fires here</text>
+      <text x="40" y="216" font-family="IBM Plex Mono" font-size="11" fill="var(--ink-muted)">step 16</text>
+      <text x="600" y="216" font-family="IBM Plex Mono" font-size="11" fill="var(--ink-muted)" text-anchor="end">step 20</text>
+    </svg>
+    <div class="chart-legend">
+      <span><span class="dot" style="background:var(--ink-muted)"></span>cumulative drift of cube A</span>
+      <span><span class="dot" style="background:var(--warn)"></span>new early-warning threshold</span>
+      <span><span class="dot" style="background:var(--alert)"></span>old hard-alert threshold</span>
+    </div>
+  </div>
+  <p class="section-sub">Replaying the actual telemetry from this run: the old detector only fired once cube A was already flung off the table. A detector that also tracks drift <em>direction</em>, not just magnitude, flags the same trend one step earlier &mdash; while the cube was still recoverable.</p>
+</section>
+
+<section class="wrap-wide">
+  <h2>The fix, made structural</h2>
+  <p class="section-sub">Not caller discipline &mdash; library-level guarantees in <code>common.py</code>.</p>
+  <div class="code-grid">
+    <div class="code-panel">
+      <div class="label">common.py &mdash; capped, waypointed transport</div>
+      <pre><span class="kw">def</span> plan_transport_waypoints(
+    start_xyz, end_xyz,
+    max_xy_step=0.12,
+    lift_clearance=0.10,
+):
+    <span class="cm"># lift, then translate in capped</span>
+    <span class="cm"># steps, then descend &mdash; a single</span>
+    <span class="cm"># IK jump can no longer imply</span>
+    <span class="cm"># an uncontrolled swing</span>
+    ...</pre>
+    </div>
+    <div class="code-panel">
+      <div class="label">common.py &mdash; drift direction, not just magnitude</div>
+      <pre>cos_sims = [
+    dot(a, b) / (norm(a) * norm(b))
+    <span class="kw">for</span> a, b <span class="kw">in</span> zip(vecs[:-1], vecs[1:])
+]
+trending = (
+    cos_sims <span class="kw">and</span>
+    min(cos_sims) > DRIFT_TREND_COS_THRESH
+)
+<span class="cm"># several same-direction nudges</span>
+<span class="cm"># now warn before the hard</span>
+<span class="cm"># magnitude threshold trips</span></pre>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p><a href="https://github.com/abdurahmanabdi/arm-bench">github.com/abdurahmanabdi/arm-bench</a> &middot; field notes, telemetry, and failure analysis for a MuJoCo arm-manipulation benchmark.</p>
+</footer>
+
+</body>
+</html>
