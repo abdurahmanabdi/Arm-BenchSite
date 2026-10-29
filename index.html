@@ -47,7 +47,7 @@
   <h2>Three tasks, increasing difficulty</h2>
   <p class="section-sub">Same controller setup throughout: look at a rendered frame plus object and gripper telemetry, decide the next move, execute, look again.</p>
   <div class="status-panel">
-    <img src="summary_3tasks.png" alt="Contact sheet summarizing the outcome of all three tasks">
+    <img src="https://raw.githubusercontent.com/abdurahmanabdi/arm-bench/main/summary_3tasks.png" alt="Contact sheet summarizing the outcome of all three tasks">
     <p class="status-caption">Task 1 (pick-and-place) and task 3 (dual-slot loading) both succeeded on the recorded run. Task 2 (stacking) is the open failure below.</p>
   </div>
   <div class="task-list">
@@ -78,7 +78,7 @@
   <p><strong>Death by a thousand nudges.</strong> Cube A was placed cleanly. While aligning cube B above it for the stack, the gripper's fingertips &mdash; which extend about 3cm past the point the code was tracking &mdash; clipped cube A on each descent. Four small, individually-plausible nudges in the same direction accumulated until the cube was knocked off the table. No single correction was the mistake; the mistake was treating each nudge as independent instead of noticing the trend.</p>
 
   <figure class="figure">
-    <img src="contact_sheet_task2_rerun.png" alt="Contact sheet of the rerun: cube A placed cleanly, then progressively nudged off-table while aligning cube B above it">
+    <img src="https://raw.githubusercontent.com/abdurahmanabdi/arm-bench/main/contact_sheet_task2_rerun.png" alt="Contact sheet of the rerun: cube A placed cleanly, then progressively nudged off-table while aligning cube B above it">
     <figcaption>Rerun after fixing the fling: transport succeeds, but the stacking approach still disturbs cube A step by step until the cumulative drift spikes.</figcaption>
   </figure>
 
